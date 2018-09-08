@@ -1,0 +1,82 @@
+config: |-
+  ; EthGasStation Configuration File
+  ;
+  ; This configuration file is used inside containers for all of
+  ; the EthGasStation pipeline. This specific version is used by
+  ; the Dockerfile.
+
+
+  ; MySQL/MariaDB
+  ; EthGasStation's backend uses MariaDB for a relational data store
+  ; to store information about its statistical model.
+  [mysql]
+      hostname  = {{ .Values.mysql.hostname }}
+      port      = {{ .Values.mysql.port }}
+      username  = {{ .Values.mysql.username }}
+      password  = {{ .Values.mysql.password }}
+      database  = {{ .Values.mysql.database }}
+
+
+  ; Redis
+  ; EthGasStation uses Redis for fast-access key/value storage, such as
+  ; for session synchronization across web servers, rate limiting, or
+  ; JSON dumps from the backend.
+  [redis]
+      ; hostname of redis server
+      hostname  = {{ .Values.redis.hostname }}
+      ; redis port
+      port      = {{ .Values.redis.port }}
+      ; protocol (supported: redis (tcp), unix (sock))
+      protocol  = {{ .Values.redis.protocol }}
+      ; path = {{ .Values.redis.path }}
+
+
+  ; geth
+  ; EthGasStation is dependent upon a working geth node. If you have a single
+  ; geth node, use the "geth" section. RPC is required, with access to `txpool`.
+  [geth]
+      ; hostname of geth node
+      hostname = {{ .Values.geth.hostname }}
+      ; geth rpc port
+      port     = {{ .Values.geth.port }}
+      ; protocol (supported: http)
+      protocol = {{ .Values.geth.protocol }}
+
+      ; sync_tip_with = {{ .Values.geth.sync_tip_with }}
+
+  ; JSON
+  ; This will be removed in a future version.
+  [json]
+      output_type = {{ .Values.json.output_type }}
+      output_location = {{ .Values.json.output_location }}
+
+
+  ; API-specific settings
+  ; The API layer, ethgasstation-api, uses these settings as its defaults.
+  ; You will want to change them if you are running a public API.
+  [api]
+      ; reverse proxy info
+      ; if the application is behind a load balancer or cloudflare,
+      ; set "behind_reverse_proxy" to true.
+      behind_reverse_proxy = {{ .Values.api.behind_reverse_proxy }}
+      ; proxy servers send the client IP via a different header, such
+      ; as x-real-ip or x-forwarded-for.
+      proxy_real_ip_header = {{ .Values.api.proxy_real_ip_header }}
+
+      ; ip rate limiting
+      ; this rate limits IP addresses to stop bad (or stupid) actors
+      rate_limit_disable = {{ .Values.api.rate_limit_disable }}
+      rate_limit_max_requests = {{ .Values.api.rate_limit_max_requests }}
+      rate_limit_request_window_seconds = {{ .Values.api.rate_limit_request_window_seconds }}
+
+      ; ip or api key banning
+      ; used to permanently blacklist specific IPs
+      banhammer_disable = {{ .Values.api.banhammer_disable }}
+      banhammer_backing_store = {{ .Values.api.banhammer_backing_store }}
+      ; if you aren't running redis, you can use flat files.
+      ; this isn't recommended because it will be slow.
+      banhammer_api_key_file = {{ .Values.api.banhammer_api_key_file }}
+      banhammer_ip_addr_file = {{ .Values.api.banhammer_ip_addr_file }}
+
+      ; infura_api_key = {{ .Values.api.infura_api_key }}
+      ; etherscan_api_key = {{ .Values.api.etherscan_api_key }}

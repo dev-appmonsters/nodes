@@ -1,0 +1,30 @@
+{
+  "builders": [
+    {
+      "type" : "googlecompute",
+      "project_id" : "xyz-sandbox",
+      "source_image_family": "ubuntu-1604-lts",
+      "image_family" : "xyz-ethereum-main-image",
+      "image_name" : "ethereum-main-packer-{{timestamp}}",
+      "instance_name" : "ethereum-main-packer-{{uuid}}",
+      "image_description" : "Image is geth VM configured for mainnet",
+      "disk_type" : "pd-ssd",
+      "zone": "asia-southeast1-b",
+      "ssh_username" : "ubuntu"
+    }
+  ],
+  "provisioners": [{
+    "type": "file",
+    "source": "scripts/geth/etc",
+    "destination": "./etc"
+  }, {
+    "type": "shell",
+    "scripts": [
+      "scripts/geth/setup.sh"
+    ]
+  }, {
+    "type": "shell",
+    "inline": ["sudo reboot"],
+    "expect_disconnect": true
+  }]
+}

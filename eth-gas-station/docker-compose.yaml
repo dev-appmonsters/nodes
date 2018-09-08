@@ -1,0 +1,34 @@
+version: '2'
+services:
+  ethgasstation-api:
+    build: ethgasstation-api/.
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    volumes:
+      - ${PWD}/settings.docker.conf:/etc/ethgasstation/settings.conf
+    depends_on:
+      - ethgasstation-backend
+
+  ethgasstation-backend:
+    build: ethgasstation-backend/.
+    volumes:
+      - ${PWD}/settings.docker.conf:/etc/ethgasstation/settings.conf
+    depends_on:
+      - mysql
+      - redis
+
+  mysql:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_USER: ethgas
+      MYSQL_PASSWORD: station
+      MYSQL_DATABASE: tx
+      MYSQL_ROOT_PASSWORD: station
+
+  redis:
+    image: redis
+    restart: always

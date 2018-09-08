@@ -1,0 +1,12 @@
+[Unit]
+Description=Geth Node
+
+[Service]
+Type=simple
+Restart=always
+User=geth
+Group=geth
+ExecStart=/bin/bash -ce '/usr/bin/geth --rpc &>/var/log/geth/geth.log'
+
+[Install]
+WantedBy=multi-user.target

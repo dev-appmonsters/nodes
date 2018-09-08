@@ -1,0 +1,30 @@
+{
+  "builders": [
+    {
+      "type" : "googlecompute",
+      "project_id" : "xyz-sandbox",
+      "source_image_family": "ubuntu-1604-lts",
+      "image_family" : "xyz-bitcoin-main-image",
+      "image_name" : "bitcoin-main-packer-{{timestamp}}",
+      "instance_name" : "bitcoin-main-packer-{{uuid}}",
+      "image_description" : "Image is bcore VM configured for mainnet",
+      "disk_type" : "pd-ssd",
+      "zone": "asia-southeast1-b",
+      "ssh_username" : "ubuntu"
+    }
+  ],
+  "provisioners": [{
+    "type": "file",
+    "source": "scripts/bcore/etc",
+    "destination": "./etc"
+  }, {
+    "type": "shell",
+    "scripts": [
+      "scripts/bcore/setup.sh"
+    ]
+  }, {
+    "type": "shell",
+    "inline": ["sudo reboot"],
+    "expect_disconnect": true
+  }]
+}

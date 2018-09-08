@@ -1,0 +1,10 @@
+/var/lib/bitcoin/testnet3/debug.log {
+        create 640 bitcoin bitcoin
+        daily
+        rotate 14
+        compress
+        sharedscripts
+        postrotate
+            killall -HUP bitcoind
+        endscript
+}

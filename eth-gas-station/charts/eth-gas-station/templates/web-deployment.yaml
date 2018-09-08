@@ -1,0 +1,86 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "eth-gas-station.fullname" . }}-web
+  labels:
+    app: {{ template "eth-gas-station.name" . }}-web
+    chart: {{ template "eth-gas-station.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "eth-gas-station.name" . }}-web
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "eth-gas-station.name" . }}-web
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: ethgasstation-api
+          image: "{{ .Values.image.ethgasstation_api.repository }}:{{ .Values.image.ethgasstation_api.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # command:
+          #   - "sh"
+          #   - "-c"
+          #   # - "timeout 15 bash -c 'until echo > /dev/tcp/{{ .Values.mysql.hostname }}/{{ .Values.mysql.port }}; do sleep 0.5; done'"
+          #   # - "&&"
+          #   - "node"
+          #   - "/opt/ethgasstation/api/app.js"
+          env:
+            - name: PORT
+              value: "80"
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+
+          volumeMounts:
+            - name: settings-docker-conf
+              mountPath: /etc/ethgasstation
+              readOnly: true
+
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          command:
+            - "sh"
+            - "-c"
+            - "/cloud_sql_proxy -instances={{ .Values.google.sql_instance_connection_name }}=tcp:3306 -credential_file=/secrets/cloudsql/sql_sa_credentials.json"
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: {{ template "eth-gas-station.fullname" . }}
+        - name: settings-docker-conf
+          secret:
+            secretName: {{ template "eth-gas-station.fullname" . }}
+
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

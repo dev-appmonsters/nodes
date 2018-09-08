@@ -1,0 +1,10 @@
+/var/log/geth/geth.log {
+        create 640 geth geth
+        daily
+        rotate 14
+        compress
+        sharedscripts
+        postrotate
+            killall -HUP geth
+        endscript
+}

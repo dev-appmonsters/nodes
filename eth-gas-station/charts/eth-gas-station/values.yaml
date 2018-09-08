@@ -1,0 +1,136 @@
+# Default values for eth-gas-station.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  ethgasstation_api:
+    repository: nginx
+    tag: stable
+    pullPolicy: IfNotPresent
+  ethgasstation_backend:
+    repository: nginx
+    tag: stable
+    pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  externalPort: 80
+  internalPort: 80
+
+ingress:
+  enabled: true
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /*
+  hosts:
+    - fake.ml
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+google:
+  sql_instance_connection_name: xyz-admin:asia-southeast1:gas-station
+  cloud_proxy:
+    sql_sa_credentials_json: |-
+      {
+        "fake": "fake"
+      }
+
+  # ; MySQL/MariaDB
+  # ; EthGasStation's backend uses MariaDB for a relational data store
+  # ; to store information about its statistical model.
+mysql:
+  hostname: localhost
+  port: 3306
+  username: fake
+  password: fake
+  database: tx
+
+  # ; Redis
+  # ; EthGasStation uses Redis for fast-access key/value storage, such as
+  # ; for session synchronization across web servers, rate limiting, or
+  # ; JSON dumps from the backend.
+redis:
+  # ; hostname of redis server
+  hostname: gas-station-redis
+  # ; redis port
+  port: 6379
+  # ; protocol (supported: redis (tcp), unix (sock))
+  protocol: redis
+
+  # Dependency `redis` chart config
+  usePassword: false
+  persistence:
+    enabled: true
+
+  # ; geth
+  # ; EthGasStation is dependent upon a working geth node. If you have a single
+  # ; geth node, use the "geth" section. RPC is required, with access to `txpool`.
+geth:
+  # ; hostname of geth node
+  hostname: fake #ethereum.testnet.xyz.io
+  # ; geth rpc port
+  port: fake # '18545'
+  # ; protocol (supported: http)
+  protocol: http
+  # ; sync_tip_with = {{ .Values.sync_tip_with }}
+
+  # ; JSON
+  # ; This will be removed in a future version.
+json:
+  output_type: redis
+  output_location: http://gas-station-redis:xxxx/
+
+  # ; API-specific settings
+  # ; The API layer, ethgasstation-api, uses these settings as its defaults.
+  # ; You will want to change them if you are running a public API.
+api:
+  # ; reverse proxy info
+  # ; if the application is behind a load balancer or cloudflare,
+  # ; set "behind_reverse_proxy" to true.
+  behind_reverse_proxy: false
+  # ; proxy servers send the client IP via a different header, such
+  # ; as x-real-ip or x-forwarded-for.
+  proxy_real_ip_header: x-forwarded-for
+
+  # ; ip rate limiting
+  # ; this rate limits IP addresses to stop bad (or stupid) actors
+  rate_limit_disable: false
+  rate_limit_max_requests: 120
+  rate_limit_request_window_seconds: 60
+
+  # ; ip or api key banning
+  # ; used to permanently blacklist specific IPs
+  banhammer_disable: false
+  banhammer_backing_store: redis
+  # ; if you aren't running redis, you can use flat files.
+  # ; this isn't recommended because it will be slow.
+  banhammer_api_key_file: /tmp/api_ban.txt
+  banhammer_ip_addr_file: /tmp/ip_ban.txt
+
+  # ; infura_api_key: xyz
+  # ; etherscan_api_key: xyz
+
+
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
